@@ -1,1 +1,54 @@
 
+
+
+digraph G {
+    compound=true;
+    rankdir="LR";
+    
+        # https://www.visual-paradigm.com/guide/uml-unified-modeling-language/uml-class-diagram-tutorial/
+    subgraph cluster_key {
+        label = "Key"
+        aggregation[color=lightblue,shape=square, style=rounded, style=filled];
+        interface[color=green,shape=square, style=rounded, style=dashed];
+        aggregation->interface [label=contains, dir=back, arrowtail=ediamond, style=dashed];
+        interface->{implementation1, implementation2} [label="", dir=back];
+        implementation1->implementation2[label=owns, style=dotted]
+    }
+    
+    subgraph interfaces {
+        node[color=green,shape=square, style=rounded, style=dashed];
+        Database;
+        Table;
+        Datasource;
+        Warnable;
+        Field;
+    }
+    
+    Database -> {CloudFile, DatabaseServer, File, WebDataConnector } [dir=back];
+    Table -> {DatabaseTable, CustomSqlTable} [dir=back];
+    Datasource -> {PublishedDatasource, EmbeddedDatasource}[dir=back];
+    Warnable -> {CloudFile, DatabaseServer ,File, WebDataConnector, DatabaseTable, PublishedDatasource, Flow}[dir=back];
+    
+    subgraph cluster_fields {
+        Field -> {AnalyticsField, BinField, CalculatedField, 
+        ColumnField, CombinedField, CombinedSetField, DataSourceField, GroupField, HierarchyField, SetField}[dir=back];
+    }
+    # parents and children
+    DatabaseServer -> {CloudFile, CustomSqlTable, DatabaseTable, File, WebDataConnector}[label="can own", style=dotted, color=red]
+    DatabaseTable -> Column[label="can own", style=dotted, color=blue]
+    PublishedDatasource -> {DataSourceFilter, Field}[label="can own", style=dotted, color=purple]
+    Workbook -> {EmbeddedDatasource, Dashboard, Sheet} [label="can own", style=dotted, color=red];
+    Sheet -> Field [label="can own", style=dotted, color=blue];
+    Flow -> {FlowInputField, FlowOutputField}[label="can own", style=dotted, color=purple];
+
+
+    Workbook -> PublishedDatasource [label="refers to", style=dashed, color=blue];
+    TableauSite
+    TableauProject -> {Workbook, Sheet, Metric} [label="can own", style=dotted, color=red];
+    User
+
+
+
+    label="Tableau Metadata API"
+    
+}
