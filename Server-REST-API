@@ -1,0 +1,87 @@
+
+
+digraph G {
+    compound=true;
+    rankdir="LR";
+    
+    subgraph cluster_other{
+        label="Needs more info...";
+        "External Asset",  alert, tag connection, extract;
+    }
+    
+    # https://www.visual-paradigm.com/guide/uml-unified-modeling-language/uml-class-diagram-tutorial/
+    subgraph cluster_key {
+        label = "Key"
+        aggregation[color=lightblue,shape=square, style=rounded, style=filled];
+        interface[color=green,shape=square, style=rounded, style=dashed];
+        aggregation->interface [label=contains, dir=back, arrowtail=ediamond, style=dashed];
+        interface->{implementation1, implementation2} [label="", dir=back];
+        implementation1->implementation2[label=owns, style=dotted]
+    }
+    
+    
+    subgraph cluster_server {
+        Sites[color=lightblue,shape=square, style=rounded, style=filled];
+        Schedules [color=lightblue,shape=square, style=rounded, style=filled];
+        "System Users" [color=lightblue,shape=square, style=rounded, style=filled];
+        Settings [style=dashed];
+        # Postgres [shape=cylinder];
+        label = "Tableau Server";
+    }
+    subgraph cluster_Site{
+        label="My Site";
+        Content[color=green,shape=square, style=rounded, style=dashed];        
+        Actors [color=lightblue,shape=square, style=rounded, style=filled];
+    }
+    subgraph cluster_collections {
+        node[color=lightblue,shape=square, style=rounded, style=filled];
+        color=green;shape=square;style=rounded; style=dashed;
+        project->project  [label=contains, dir=back, arrowtail=ediamond, style=dashed];
+        space->project  [label=contains, dir=back, arrowtail=ediamond, style=dashed];
+        label="Is a project/space kinds of Collections?"
+    }
+    project->workbook, Datasource[ltail=cluster_collections, label=contains, arrowtail=ediamond, style=dashed, dir=back]
+
+    
+    subgraph cluster_content{
+        rank="same"
+        Content -> {project, space, workbook, sheets, Datasource, Metric, Webhook}[label="", dir=back];
+    }
+    
+    
+    Sites -> Content [lhead=cluster_Site,  dir=back, arrowtail=ediamond, style=dashed];
+    subgraph cluster_actors{
+        rank=same;
+        label=Actor
+        color=green;shape=square;style=rounded; style=dashed;
+        group [color=lightblue,shape=square, style=rounded, style=filled];
+        group -> site_user[label=contains, dir=back, arrowtail=ediamond, style=dashed];
+    }
+    Actors -> {site_user}[lhead=cluster_actors, label=contains, dir=back, arrowtail=ediamond, style=dashed];
+    Content -> {site_user}[label="owns/creates", dir=back, arrowtail=ediamond, style=dotted];
+    "System Users" -> site_user[label="has a", dir=back, style=dotted]
+    
+    
+    
+    workbook -> {sheets, Datasource} [label=contains, dir=back, arrowtail=ediamond, style=dashed];
+    sheets[color=green,shape=square, style=rounded, style=dashed];
+    
+    subgraph cluster_sheets {
+        rank=same;
+        sheets -> {viz, dashboard, storyboard}[dir=back]
+    }
+    dashboard-> viz [label="refers to", style=dotted]
+    
+    Datasource[color=green,shape=square, style=rounded, style=dashed];
+    Datasource -> extract[dir=back];
+    Datasource -> connection[label=has, style=dotted]
+    Datasource -> "External Asset" [label="refers to?"]
+
+
+    label="Tableau Server REST API"
+
+    # group -> User [label = contains, style = dashed]
+    #Actors -> User;
+    #User -> workbook [label = owns, style=dotted];
+    
+}
