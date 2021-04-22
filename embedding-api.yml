@@ -1,0 +1,43 @@
+digraph G {
+    compound=true;
+    rankdir="LR";
+    
+    subgraph{
+        rank=same;
+        Toolbar;
+        VizManager;
+        Viz;
+        Workbook;
+    }
+    VizManager->Viz;
+    Viz->Workbook, Toolbar;
+    Viz -> Event [label="can listen for"]
+    Workbook -> Sheet, datasource, customView, Parameter [label=contains, dir=back, arrowtail=crow, style=dotted]
+    Sheet, Event, Filter [color=green,shape=square, style=rounded, style=dashed];
+    subgraph {
+        rank=same;
+        dashboard;
+        worksheet;
+    }
+    Sheet -> dashboard, worksheet,  "story | storyPoints"  [dir=back];
+    dashboard -> worksheet, DashboardObject, Filter [dir=back,arrowtail=ediamond, style=dashed];
+    DashboardObject -> Controls, "UX Elements"
+    worksheet->SheetInfo, DataTable, Filter, Marks, datasource, LogicalTable [dir=back,arrowtail=ediamond, style=dashed];
+    
+   "story | storyPoints"-> dashboard, worksheet [label="refers to", dir=none, style=dotted];
+
+    datasource -> {LogicalTable, Field} [label=contains, dir=back, arrowtail=crow, style=dotted];
+    Field -> Aggregation, Role [label="has"];
+    LogicalTable -> DataTable  [label="refers to", dir=back, arrowtail=ediamond, style=dashed];
+    DataTable-> {data, columns};
+    
+    Event ->FilterEvent,MarksEvent,ParameterEvent,StoryPointSwitchEvent,TabSwitchEvent,URLActionEvent,VizResizeEvent [dir=back];
+    Filter -> CategoricalFilter, QuantitativeFilter,HierarchicalFilter, RelativeDateFilter [dir=back, arrowtail=crow]
+    
+    
+    
+    
+
+    
+    label="Embedding API" #https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm
+}
