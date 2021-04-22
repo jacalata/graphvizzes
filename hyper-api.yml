@@ -1,0 +1,29 @@
+digraph G {
+    compound=true;
+    rankdir="LR";
+    
+        # https://www.visual-paradigm.com/guide/uml-unified-modeling-language/uml-class-diagram-tutorial/
+    subgraph cluster_key {
+        label = "Key"
+        aggregation[color=lightblue,shape=square, style=rounded, style=filled];
+        aggregation->implementation1 [label=contains, dir=back, arrowtail=crow, style=dashed];
+        implementation1->implementation2[label="owns (one)", style=dotted]
+        implementation1->implementation2[label="refers to (multiple)", dir=back, arrowtail=crow, style=dotted]
+    }
+    
+    ExtractAPI
+    
+    Extract -> Table[label=has, style=dotted, arrowtail=crow, dir=back];
+    
+    Table -> TableDefinition [label=has, style=dashed, arrowtail=ediamond, dir=back];
+    TableDefinition -> Column [label=has, style=dashed, arrowtail=crow, dir=back];
+    TableDefinition -> Collation [label=has, style=dashed, arrowtail=ediamond, dir=back];
+    Column -> Collation, Type [label=has, style=dashed, arrowtail=ediamond, dir=back];
+    
+    Table -> Row [label=has, style=dashed, arrowtail=crow, dir=back];
+    Row -> TableDefinition [label=requires, style=dotted, arrowtail=ediamond];
+    
+
+
+  label="Hyper API"
+}
