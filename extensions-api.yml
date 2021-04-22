@@ -1,0 +1,39 @@
+digraph G {
+    compound=true;
+    rankdir="LR";
+    
+        # https://www.visual-paradigm.com/guide/uml-unified-modeling-language/uml-class-diagram-tutorial/
+    subgraph cluster_key {
+        label = "Key"
+        aggregation[color=lightblue,shape=square, style=rounded, style=filled];
+        interface[color=green,shape=square, style=rounded, style=dashed];
+        aggregation->interface [label=contains, dir=back, arrowtail=ediamond, style=dashed];
+        interface->{implementation1, implementation2} [label="", dir=back];
+        implementation1->implementation2[label="refers to (multiple)", dir=back, arrowtail=crow, style=dotted]
+    }
+    
+    
+    Settings
+    Environment
+    UI
+    subgraph {
+        rank=same;
+        dashboard;
+        worksheet;
+    }
+    Sheet [color=green,shape=square, style=rounded, style=dashed];
+    Sheet -> dashboard, worksheet  [label="", dir=back, rank=same];
+    
+    
+    DashboardContent -> dashboard[label=has, style=dotted, arrowtail=crow, dir=back];
+    ZoneVisibilityMap [color=lightblue,shape=square, style=rounded, style=filled];
+    dashboard -> {worksheet, Parameter, ZoneVisibilityMap} [label=has, style=dotted, arrowtail=crow, dir=back];
+    worksheet -> Filter, Marks [label=has, dir=back, arrowtail=crow, style=dotted]
+    ZoneVisibilityMap -> Zone [label=contains, dir=back, arrowtail=ediamond, style=dashed];
+    
+    Value, Name, Type, AllowedValues[shape=plaintext] 
+    Parameter -> {Value, Name, Type, AllowedValues}[dir=none]
+
+    
+    label="Extensions API" #https://tableau.github.io/extensions-api/docs/index.html
+}
