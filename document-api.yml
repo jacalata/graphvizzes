@@ -1,0 +1,32 @@
+digraph G {
+    compound=true;
+
+    node[shape=record];    
+    edge[label=owns, dir=back, arrowtail=ediamond, style=dashed, color=black];
+
+    Workbook[label=<{Workbook| <i>filename</i>}>]
+    subgraph{
+        rank=same;
+        Datasource[label=<{Datasource| <i>XML</i>|<i>name</i>|<i>version</i>|<i>caption</i>}>]
+        Sheet
+    }
+
+        # objects that exist within another object - implementation
+    edge[color=red, label="contains", style=solid]
+    node[color=red]   
+    Field[label=<{Field|<i>name</i>|<i>caption</i>|<i>datatype</i>|<i>role</i>|<i>type</i>|<i>alias</i>|<i>calculation</i>|<i>aggregation</i>|<i>description</i>}>]
+    Connection[label=<{Connection|<i>server</i>|<i>dbname</i>|<i>username</i>|<i>dbclass</i>|<i>port</i>|<i>initialSql</i>}>]
+
+    Workbook -> Sheet
+    Column -> Field
+    Datasource -> {Connection, Field, Column}
+    # type = quantitative | ordinal     
+    # dbclass = enum
+          
+    edge[label="refers to", color=purple, style=dotted]
+    Field -> Sheet
+    Workbook -> Datasource
+
+    label="Tableau Server Document API"
+
+}
