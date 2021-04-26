@@ -5,50 +5,62 @@ digraph G {
     compound=true;
     rankdir="LR";
     
-    subgraph interfaces {
-        node[color=green,shape=square, style=rounded, style=dashed];
-        Database;
-        Table;
-        Datasource;
-        Warnable;
-        Taggable;
-        Field;
+    #subgraph interfaces - object or facade
+    node[color=green,shape=square, style=rounded, style=dashed];
+    Database;
+    Table;
+    Datasource;
+    Warnable;
+    Taggable;
+    Field;
         // Ownable
         // Certifiable
-    }
     
-    Database -> {CloudFile, DatabaseServer, File, WebDataConnector } [dir=back];
-    Table -> {DatabaseTable, CustomSqlTable} [dir=back];
-    Datasource -> {PublishedDatasource, EmbeddedDatasource}[dir=back];
+    
+    # implements an abstract type
+    edge[dir=back]
+    Database -> {CloudFile, DatabaseServer, File, WebDataConnector };
+    Table -> {DatabaseTable, CustomSqlTable} ;
+    Datasource -> {PublishedDatasource, EmbeddedDatasource};
     View -> {Sheet, Dashboard}
 
-    Warnable -> {CloudFile, DatabaseServer ,File, WebDataConnector, DatabaseTable, PublishedDatasource, Flow}[dir=back, color=blue, style=dotted];
-    Taggable -> {CloudFile, DatabaseServer ,File, WebDataConnector, DatabaseTable, PublishedDatasource, Flow}[dir=back, color=purple, style=dotted];
+    # facade being implemented
+    edge[dir=back, color=purple, style=dotted]
+    Warnable -> {CloudFile, DatabaseServer ,File, WebDataConnector, DatabaseTable, PublishedDatasource, Flow};
+    Taggable -> {CloudFile, DatabaseServer ,File, WebDataConnector, DatabaseTable, PublishedDatasource, Flow};
 
 
-    // abstracts
-    Field [shape=ellipse];
-    Datasource [shape=ellipse];
-    Table [shape=ellipse];
-    View [shape=ellipse];
-
-    # parents and children
-    TableauSite -> User, TableauProject [label="contains", color=red, style=dashed]
-    TableauProject -> {Workbook, Metric, Flow, Datasource} [label="contains", color=red, style=dashed]
-    Datasource -> {DataSourceFilter, Field}[label="contains", color=red, style=dashed]
-    DatabaseServer -> {CloudFile, Table, File, WebDataConnector}[label="contains", color=red, style=dashed]
-    Workbook -> {EmbeddedDatasource, View} [label="contains", color=red, style=dashed]
-    Table -> Column[label="contains", color=red, style=dashed]
-    EmbeddedDatasource -> Field[label="contains", color=red, style=dashed]
+    // abstract type objects
+    node [shape=ellipse];
+    Field
+    Datasource
+    Table
+    View 
     
-    DatabaseServer -> PublishedDatasource, Workbook, View, Metric, Flow [label="refers to",style = dashed; color=green]
-    Flow ->  Field[label="refers to", style = dashed; color=green]
-    Sheet -> Field [label="refers to", style = dashed; color=green]
-    Metric -> Sheet[label="refers to", style = dashed; color=green]
-    Column -> Field [label="refers to", style = dashed; color=green]
-    Dashboard -> Sheet [label="refers to", style = dashed; color=green]
-    DataSourceFilter -> Field [label="refers to", style = dashed; color=green]
-    Workbook -> PublishedDatasource [label="refers to", style = dashed; color=green]
+    # containment in the domain concept - parents and children
+    edge[label="is parent", color=purple, style=dashed]
+    TableauSite -> {User, TableauProject}
+    TableauProject -> {Workbook, Metric, Flow, Datasource} 
+    
+    # containment in implementation - object contains another object
+    edge[label="contains", color=red, style=dashed]
+    Datasource -> {DataSourceFilter, Field}
+    DatabaseServer -> Table
+    DatabaseServer -> {CloudFile, File, WebDataConnector}
+    Workbook -> {EmbeddedDatasource, View} 
+    Table -> Column
+    EmbeddedDatasource -> Field
+    
+    # neighbor - shows referring to something
+    edge[label="refers to",style = dashed; color=green]
+    DatabaseServer -> PublishedDatasource, Workbook, View, Metric, Flow 
+    Flow ->  Field
+    Sheet -> Field
+    Metric -> Sheet
+    Column -> Field
+    Dashboard -> Sheet 
+    DataSourceFilter -> Field 
+    Workbook -> PublishedDatasource
     User
 
 
