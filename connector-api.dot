@@ -1,0 +1,42 @@
+digraph G {
+    compound=true;
+
+    node[shape=record];
+    edge[label=owns, dir=back, arrowtail=ediamond, style=dashed, color=black];
+
+    "Connection Resolver"-> "connection-builder";
+    "Connection Resolver" -> "connection-properties";
+    "Connection Resolver" -> "connection-normalizer";
+    "Connection Resolver" -> "driver-resolver";
+
+    "Connector Plugin"->"Connection Resolver"
+    "Connector Plugin"->"Connection Fields"
+    "Connector Plugin"->"Connection Metadata"
+    "Connector Plugin"->Dialect
+
+    "driver-resolver"[label=<{driver-resolver|<i>List(name, version)</i>}>]
+    "Connection Helper"[label=<{Connection Helper|<i>FormatKeyValuePair()</i>}>]
+    "Driver Locator"[label=<{Driver Locator|<i>LocateDriver()</i>|<i>LocateDriverVersion()</i>}>]
+
+    "connection-builder"[label=<{connection-builder|<i>server</i>|<i>port</i>|<i>dbname</i>}>];
+    "connection-properties"[label=<{connection-properties|<i>server</i>|<i>username</i>|<i>password</i>}>];
+    "connection-normalizer"[label=<{connection-normalizer|<i>attribute-names</i>}>];
+
+    Dialect[label=<{Dialect|<i>name</i>|<i>class</i>|<i>version</i>}>]
+    "supported-aggregation";
+    "function-map"[label=<{function-map|<i>formula</i>|<i>...</i>}>]
+    "supported-joins"
+    "format-is-distinct"
+
+
+    Dialect->"supported-joins"
+    Dialect->"supported-aggregation"
+    Dialect->"function-map"
+    Dialect->"format-is-distinct"
+
+    "Connection Fields"[label=<{"Connection Fields|<i>name</i>|<i>label</i>|<i>value-type</i>|<i>...</i>}>]
+
+
+    label="Tableau Connector SDK"
+
+}
