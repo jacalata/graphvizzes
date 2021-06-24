@@ -1,43 +1,88 @@
-digraph G {
-    compound=true;
-    rankdir="LR";
-    
-    subgraph{
-        rank=same;
-        Toolbar;
-        VizManager;
-        Viz;
-        Workbook;
-    }
-    VizManager->Viz;
-    Viz->Workbook, Toolbar;
-    Viz -> Event [label="can listen for"]
-    Workbook -> Sheet, datasource, customView, Parameter [label=contains, dir=back, arrowtail=crow, style=dotted]
-    Sheet, Event, Filter [color=green,shape=square, style=rounded, style=dashed];
-    subgraph {
-        rank=same;
-        dashboard;
-        worksheet;
-    }
-    Sheet -> dashboard, worksheet,  "story | storyPoints"  [dir=back];
-    dashboard -> worksheet, DashboardObject, Filter [dir=back,arrowtail=ediamond, style=dashed];
-    DashboardObject -> Controls, "UX Elements"
-    worksheet->SheetInfo, DataTable, Filter, Marks, datasource, LogicalTable [dir=back,arrowtail=ediamond, style=dashed];
-    
-   "story | storyPoints"-> dashboard, worksheet [label="refers to", dir=none, style=dotted];
 
-    datasource -> {LogicalTable, Field} [label=contains, dir=back, arrowtail=crow, style=dotted];
-    Field -> Aggregation, Role [label="has"];
-    LogicalTable -> DataTable  [label="refers to", dir=back, arrowtail=ediamond, style=dashed];
-    DataTable-> {data, columns};
+digraph hierarchy {
+//  rankdir=LR;
     
-    Event ->FilterEvent,MarksEvent,ParameterEvent,StoryPointSwitchEvent,TabSwitchEvent,URLActionEvent,VizResizeEvent [dir=back];
-    Filter -> CategoricalFilter, QuantitativeFilter,HierarchicalFilter, RelativeDateFilter [dir=back, arrowtail=crow]
-    
-    
-    
-    
+node[shape=record,style=filled,fillcolor=gray95]
+edge[arrowtail=empty]
+
+Viz[label="Viz|areTabsHidden\nisToolbarHidden\nisHidden\nparentElement\nURL\nareAutomaticUpdatesPaused|show/hide/dispose()\n(pause, resume, toggle)AutoUpdate()\nrevertAllAsync()\nrefreshDataAsync()\nshowDownloadDialog(Workbook/Viz)\nShowExportDialog(ExportTypeEnum)\n+showShareDialog()\nsetFrameSize()\ngetCurrentUrlAsync\nundo/redoAsync()}"]
+DialogTypeEnum[label="ExportTypeEnum|Image\nPdf\nPPT\nData\nCrossTab\nCrossTabToExcel"]
+
+TableauEvent[label = "Event|+Viz\n+Enum TableauEventName|..."]
+/*
+// async data events
+CustomViewEvent[label="CustomViewEvent|...|getCustomViewAsync(): Promise|CUSTOM_VIEW_LOAD\nCUSTOM_VIEW_REMOVE\nCUSTOM_VIEW_SAVE\nCUSTOM_VIEW_SET_DEFAULT"]
+FilterEvent[label="FilterEvent|+Worksheet\n+string Fieldname|+getFilterAsync(): Promise|FILTER_CHANGE"]
+MarksEvent[label="MarksEvent|+Worksheet\n+string Fieldname|+getMarksAsync(): Promise|MARKS_SELECTION"]
+ParameterEvent[label="ParameterEvent|+string ParameterName|+getParameterAsync(): Promise|PARAMETER_VALUE_CHANGE"]
+
+StoryPointSwitchEvent[label="StoryPointSwitchEvent|+StoryPointInfo OldStoryPointInfo\n+StoryPoint NewStoryPoint|...|STORY_POINT_SWITCH"]
+TabSwitchEvent[label="TabSwitchEvent|+string OldSheetName\n+string NewSheetName|...|TAB_SWITCH"]
+
+ToolbarStateEvent[label="ToolbarStateEvent|+ToolbarState|...|TOOLBAR_STATE_CHANGE"]
+UrlActionEvent[label="UrlActionEvent|+string URL\nstring Target|...|URL_ACTION"]
+VizResizeEvent[label="VizResizeEvent|+Size VizSize|...|VIZ_RESIZE"]
+
+
+TableauEvent->CustomViewEvent,FilterEvent,MarksEvent,ParameterEvent,StoryPointSwitchEvent,TabSwitchEvent,ToolbarStateEvent,UrlActionEvent,VizResizeEvent
+*/
+#5->5[constraint=false, arrowtail=odiamond]
+label="Tableau Embedding Library"
+
+
+Workbook[label="Workbook|Name|revertAllAsync\nactivateSheetAsync()\nshow/remove/remember/setActiveAsDefaultCustomViewsAsync()\ngetParametersAsync()\nchangeParamValuesAsync()|MISSING\ndeleteSheet\nsetName\ngetDataSources\nsetActiveSheet\ngetLuid"]
+
+Workbook->Viz[label="getViz()"]
+
+Workbook->Sheet,Story[label="getActiveSheet()"]
+Workbook->CustomView[label="getActiveCustomView\ngetCustomViewsAsync()"]
+Workbook->SheetInfo,Dashboard,Worksheet[label="getPublishedSheetsInfo"]
+
+#SheetInfo[label="SheetInfo|getName\ngetIndex()\nisActive\nisHidden\ngetURL\ngetWorkbook\ngetType\ngetSize"]
+#Workbook->SheetInfo[label="getPublishedSheetsInfo()"]
+
+Datasource[label="Datasource|getName\nIsPrimary|...|MISSING:\ngetLuid\ngetType\ngetConnection\ngetCertification\ngetDataTables\ngetLogicalTables\ngetWorksheets"]
+Datasource->Field[label=getFields]
+Field->Datasource[label=getDatasource]
+
+CustomView[label="CustomView|getName\ngetAdvertised--what?\ngetDefault--isDefault!\ngetURL|setName()\nsaveAsync"]
+
+DataTable[label="Data Table|name\ndata[][]\ncolumns\ntotalRowCount\nisSummary|..."]
+LogicalTable[label="Logical Table|tableId\nstring caption|..."]
+DataTable->Column[label=columns]
+
+Worksheet[label="WorkSheet|...|get/apply/clearFilter()\nselectMarks()\nget/clearSelectedMarks()"]
+Worksheet->Datasource[label="getDataSourcesAsync"]
+Worksheet->DataTable[label="getSummaryData\ngetUnderlyingData\ngetUnderlyingTableData"]
+Worksheet->LogicalTable[label="getUnderlyingTablesAsync"]
+Worksheet->Dashboard[label="getParentDashboard"]
+Dashboard,Worksheet->StoryPoint[label="getParentStoryPoint"]
+Dashboard[label="Dashboard|...|get/apply/Filter()"]
+
+Dashboard->DashboardObject[label=getObjects]
+Dashboard->Worksheet[label=getWorksheets]
+
+DashboardObject[label="Dashboard Object|type\nposition\nsize"]
+DashboardObject->Worksheet[label="getWorksheet(is self)"]
+DashboardObject->Dashboard[label="getDashboard"]
+
+Field[label="Field|name\nDataType\nisReferenced\nIndex"]
+Column[label="Column|Fields[]"]
+Column->Field
+
+Sheet[label="Sheet|getName\ngetIndex\nisActive\nisHidden\ngetURL\ngetType\ngetSize|changeSize()"]
+Viz,Sheet,CustomView,Dashboard,SheetInfo,Story->Workbook[label="getWorkbook()"]
+StoryPoint[label="StoryPoint|index\ncaption\nisActive\nisUpdated|..."]
+StoryPoint->Story[label="getParentStory"]
+StoryPoint->Worksheet[label="getContainedSheet"]
+Story[label="Story|getActiveStoryPoint|changeSize()\nactivateStoryPoint()\nactivateNext/PrevStoryPoint()\nrevertStoryPointAsync()"]
+Story->StoryPoint[label=getStoryPointsInfo]
+
+Sheet->Story[color=red, label="is a", dir="back"]
+
+# Why isn't a story returned by getPublishedSheets? 
+# Why have SheetInfo at all instead of making WorkSheet and Dashboard be implementations of Sheet?
+# why are custom views attached to a workbook and not a worksheet? 
 
     
-    label="Embedding API" #https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm
 }
