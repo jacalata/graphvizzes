@@ -8,25 +8,7 @@ edge[arrowtail=empty]
 Viz[label="Viz|areTabsHidden\nisToolbarHidden\nisHidden\nparentElement\nURL\nareAutomaticUpdatesPaused|show/hide/dispose()\n(pause, resume, toggle)AutoUpdate()\nrevertAllAsync()\nrefreshDataAsync()\nshowDownloadDialog(Workbook/Viz)\nShowExportDialog(ExportTypeEnum)\n+showShareDialog()\nsetFrameSize()\ngetCurrentUrlAsync\nundo/redoAsync()}"]
 DialogTypeEnum[label="ExportTypeEnum|Image\nPdf\nPPT\nData\nCrossTab\nCrossTabToExcel"]
 
-TableauEvent[label = "Event|+Viz\n+Enum TableauEventName|..."]
-/*
-// async data events
-CustomViewEvent[label="CustomViewEvent|...|getCustomViewAsync(): Promise|CUSTOM_VIEW_LOAD\nCUSTOM_VIEW_REMOVE\nCUSTOM_VIEW_SAVE\nCUSTOM_VIEW_SET_DEFAULT"]
-FilterEvent[label="FilterEvent|+Worksheet\n+string Fieldname|+getFilterAsync(): Promise|FILTER_CHANGE"]
-MarksEvent[label="MarksEvent|+Worksheet\n+string Fieldname|+getMarksAsync(): Promise|MARKS_SELECTION"]
-ParameterEvent[label="ParameterEvent|+string ParameterName|+getParameterAsync(): Promise|PARAMETER_VALUE_CHANGE"]
 
-StoryPointSwitchEvent[label="StoryPointSwitchEvent|+StoryPointInfo OldStoryPointInfo\n+StoryPoint NewStoryPoint|...|STORY_POINT_SWITCH"]
-TabSwitchEvent[label="TabSwitchEvent|+string OldSheetName\n+string NewSheetName|...|TAB_SWITCH"]
-
-ToolbarStateEvent[label="ToolbarStateEvent|+ToolbarState|...|TOOLBAR_STATE_CHANGE"]
-UrlActionEvent[label="UrlActionEvent|+string URL\nstring Target|...|URL_ACTION"]
-VizResizeEvent[label="VizResizeEvent|+Size VizSize|...|VIZ_RESIZE"]
-
-
-TableauEvent->CustomViewEvent,FilterEvent,MarksEvent,ParameterEvent,StoryPointSwitchEvent,TabSwitchEvent,ToolbarStateEvent,UrlActionEvent,VizResizeEvent
-*/
-#5->5[constraint=false, arrowtail=odiamond]
 label="Tableau Embedding Library"
 
 
@@ -83,6 +65,27 @@ Sheet->Story[color=red, label="is a", dir="back"]
 # Why isn't a story returned by getPublishedSheets? 
 # Why have SheetInfo at all instead of making WorkSheet and Dashboard be implementations of Sheet?
 # why are custom views attached to a workbook and not a worksheet? 
+
+
+TableauEvent[label = "{Event|+Viz\n+Enum TableauEventName|...}"]
+
+// async data events
+FirstVizSizeKnownEvent[label="{CustomViewEvent|...|getCustomViewAsync(): Promise}"]
+VizInteractiveEvent[label="{FilterEvent|+Worksheet\n+string Fieldname|+getFilterAsync(): Promise}"]
+CustomViewsAvailableEvent[label="{MarksEvent|+Worksheet\n+string Fieldname|+getMarksAsync(): Promise}"]
+ParameterEvent[label="{ParameterEvent|+string ParameterName|+getParameterAsync(): Promise}"]
+
+/* too many events 
+StoryPointSwitchEvent[label="StoryPointSwitchEvent|+StoryPointInfo OldStoryPointInfo\n+StoryPoint NewStoryPoint|...|STORY_POINT_SWITCH"]
+TabSwitchEvent[label="TabSwitchEvent|+string OldSheetName\n+string NewSheetName|...|TAB_SWITCH"]
+
+ToolbarStateEvent[label="ToolbarStateEvent|+ToolbarState|...|TOOLBAR_STATE_CHANGE"]
+UrlActionEvent[label="UrlActionEvent|+string URL\nstring Target|...|URL_ACTION"]
+VizResizeEvent[label="VizResizeEvent|+Size VizSize|...|VIZ_RESIZE"]
+*/
+
+TableauEvent->FirstVizSizeKnownEvent,VizInteractiveEvent,CustomViewsAvailableEvent,ParameterEvent//, StoryPointSwitchEvent,TabSwitchEvent,ToolbarStateEvent,UrlActionEvent,VizResizeEvent
+
 
     
 }
