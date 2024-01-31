@@ -1,0 +1,235 @@
+@startuml
+class Extensions {
+initialize()
+DashboardContent
+Settings
+Environment
+UI
+workbook
+}
+
+Extensions *-- DashboardContent 
+Extensions *-- Workbook
+
+class DashboardContent { 
+dashboard 
+}
+
+Dashboard ... DashboardObject
+abstract DashboardObject {
+Dashboard dashboard
+String name
+isFloating
+String id
+DashboardObjectType type
+Point position
+Size size
+Worksheet? worksheet
+}
+
+class Dashboard extends Sheet {
+activeDashboardObjectId
+activeDashboardName
+Object[] objects,
+Worksheet[] worksheets, 
+zonevisibilityMap
+setZoneVisibility()
+getDashboardObjectVisibility()
+getDashboardObjectById()
+replayAnimation()
+moveAndResizeDashboardObjectsAsync()
+}
+
+class Workbook {
+getAllDataSources()
+}
+
+Workbook o-- DataSource
+Worksheet o-- DataSource
+DashboardContent *-- Dashboard
+Dashboard o-- DashboardObject
+Dashboard o--o Worksheet
+DashboardObject --o Worksheet
+
+abstract Sheet {
+String name
+SheetType sheetType
+Size size
+Parameter findParameter()
+Parameter[] getParameters()
+Filter[] getFilters()
+applyFilter(Filter)
+clearFilterAsync()
+}
+
+Dashboard o-- Filter
+Dashboard o-- Parameter
+
+
+class DashboardObject
+
+class Workbook
+
+class Worksheet extends Sheet {
+Dashboard parentDashboard
+DataSource[] getDatasourcesAsync()
+MarksCollection  getHighlightedMarks()
+MarksCollection getSelectedMarks()
+MarksCollection  selectMarksBy[ID|Value]()
+clearSelectedMarks()
+Annotation[] annotateMarks(MarkInfo[])
+Annotation[] getAnnotations()
+removeAnnotation(Annotation)
+hoverTuple/selectTuple(Tuple)
+Column[] getSummaryColumnsInfo()
+DataTableReader getSummaryDataReader()
+DataTable getPages()
+LogicalTable[] getUnderlyingTables()
+DataTable getUnderlyingTableData()
+DataTableReader getUnderlyingTableDataReader()
+}
+
+
+Worksheet o-- Column
+Worksheet o-- MarksCollection 
+Worksheet o-- Annotation
+Worksheet o-- Filter
+Worksheet o-- Parameter
+Worksheet o-- TableSummary
+Worksheet o-- LogicalTable
+Worksheet o-- DataTable
+Worksheet o-- DataTableReader
+
+MarksCollection --o MarkInfo
+
+class DataSource {
+name, id, 
+Fields[] fields
+String extractUpdateTime
+isExtract
+isPublished
+String publishedUrl,
+refresh()
+(->TableSummary[]) getActiveTables()
+(->ConnectionSummary[]) getConnectionSummaries()
+(->DataTable) getUnderlyingData()
+(->LogicalTable[]) getLogicalTables()
+(->DataTable) getLogicalTableData(id, options)
+(->DataTableReader) getLogicalTableDataReader(id, options)
+}
+
+DataSource o-- TableSummary
+DataSource o-- ConnectionSummary
+DataSource o-- LogicalTable
+DataSource o-- DataTable
+DataSource o-- DataTableReader
+
+
+class ConnectionSummary {
+String name
+String id
+String serverURI
+String type
+}
+
+class TableSummary {
+String name
+String id
+String connectionId
+String customSQL
+}
+
+TableSummary ... ConnectionSummary
+
+class LogicalTable {
+String id
+String caption 
+}
+
+class Column {
+String fieldName
+String fieldId
+DataType dataType
+isReferenced
+index
+}
+
+Column ... Field
+
+class Field {
+String id == Column.fieldId
+DataSource dataSource
+isHidden
+ColumnType columnType
+String name
+String? description,
+DataType? dataType,
+FieldRoleType role,
+isGenerated
+FieldAggregationType aggregation,
+isCombinedField
+isPresentOnPublishedDatasource
+}
+
+
+Field o-- DataSource
+
+class DataTable {
+String name
+DataValue[][] data
+MarkInfo[] marksInfo
+Column[] columns
+totalRowCount
+isTotalRowCountLimited
+isSummaryData
+}
+
+DataTable o-- Column
+DataTable o-- MarkInfo
+
+class DataTableReader {
+totalRowCount
+pageCount
+(->DataTable) getPage(pageNumber)
+(->DataTable) getAllPages()
+release()
+}
+
+class Parameter {
+String name
+String id
+DataType datatype
+DataValue value
+ParameterDomainConstraint allowableValues
+(->DataValue) changeValues()
+}
+
+class Filter {
+String fieldName
+String fieldId
+String worksheetName
+FilterType filterType
+(->Field) getField
+(->String[]) getAppliedWorksheets()
+(->String[]) setAppliedWorksheets(String[])
+}
+
+Filter ... Field
+Filter ... Worksheet
+
+class Annotation {
+String annotationText
+number annotationId
+number tupleId
+AnnotationType annotationType
+}
+
+class MarkInfo {
+MarkType markType
+String color
+number tupleId
+}
+
+
+DataTableReader o-- DataTable
+@enduml
