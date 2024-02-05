@@ -1,57 +1,98 @@
 @startuml
-class Extensions {
-initialize()
-DashboardContent
-Settings
-Environment
-UI
-workbook
+left to right direction
+title Tableau Extensions API
+caption Still missing: Events, Filter SubTypes, ? (see https://tableau.github.io/extensions-api/ )
+
+legend
+- blue: the core Tableau objects
+- green: accessor for the actual data values 
+- purple: objects representing user modifications to a worksheet/dashboard
+- orange: objects representing visual appearance of the workbook
+end legend
+
+
+skinparam class {
+ArrowColor SeaGreen
+BorderColor Black
+}
+skinparam stereotypeCBackgroundColor DimGrey
+skinparam stereotypeCBackgroundColor<< Core >> YellowGreen
+
+class tableau.extensions.dashboardContent {
+Dashboard dashboard 
 }
 
-Extensions *-- DashboardContent 
-Extensions *-- Workbook
-
-class DashboardContent { 
-dashboard 
+class tableau.extensions.workbook {
+DataSources[] getAllDataSources()
 }
+note right
+why can't it also getAllSheets?
+end note
 
-Dashboard ... DashboardObject
-abstract DashboardObject {
-Dashboard dashboard
-String name
-isFloating
-String id
-DashboardObjectType type
-Point position
-Size size
-Worksheet? worksheet
-}
 
-class Dashboard extends Sheet {
-activeDashboardObjectId
-activeDashboardName
-Object[] objects,
-Worksheet[] worksheets, 
-zonevisibilityMap
-setZoneVisibility()
-getDashboardObjectVisibility()
-getDashboardObjectById()
-replayAnimation()
-moveAndResizeDashboardObjectsAsync()
-}
+circle tableau.extensions.initializeAsync() 
+note right
+must run this first
+end note
 
-class Workbook {
-getAllDataSources()
-}
+class tableau.extensions.settings 
 
-Workbook o-- DataSource
-Worksheet o-- DataSource
-DashboardContent *-- Dashboard
-Dashboard o-- DashboardObject
-Dashboard o--o Worksheet
+class tableau.extensions.environment
+
+class tableau.extensions.ui 
+
+tableau.extensions.dashboardContent -l[hidden]- tableau.extensions.workbook
+tableau.extensions.workbook -r[hidden]- tableau.extensions.dashboardContent
+tableau.extensions.dashboardContent -r[hidden]- tableau.extensions.ui
+tableau.extensions.dashboardContent -r[hidden]- tableau.extensions.settings
+tableau.extensions.dashboardContent -r[hidden]- tableau.extensions.environment
+
+tableau.extensions.workbook --- DataSource
+tableau.extensions.dashboardContent *--- Dashboard
+Dashboard .d.|> Sheet : implements
+Worksheet .l.|> Sheet : implements 
+
+Worksheet -r-|> DataSource
+Dashboard o---o Worksheet
 DashboardObject --o Worksheet
+Dashboard ..|> DashboardObject
+DashboardObject -|> Dashboard
+Dashboard -d[hidden]- DataSource
 
-abstract Sheet {
+Sheet o-l- Parameter
+Sheet o-- Filter
+Filter -r[hidden]- Worksheet
+
+Worksheet o-- Annotation
+Worksheet o--- Column
+
+Worksheet o-- MarksCollection 
+MarksCollection o-d- MarkInfo
+MarkInfo -o DataTable
+
+DataSource o-- LogicalTable
+DataSource o-- DataTable
+DataSource o-- DataTableReader
+
+Filter ...|> Field : can identify
+Filter <|-- Field
+Filter ...|> Worksheet : can identify
+
+Column -[hidden]- DataTable
+
+DataSource o-- TableSummary
+DataSource o-- ConnectionSummary
+
+Worksheet o-- LogicalTable
+Worksheet o-- DataTable
+Worksheet o-- DataTableReader
+TableSummary ... ConnectionSummary
+Column ... Field
+Field o-- DataSource
+DataTable o-- Column
+DataTableReader o-- DataTable
+
+abstract Sheet #azure{
 String name
 SheetType sheetType
 Size size
@@ -62,15 +103,40 @@ applyFilter(Filter)
 clearFilterAsync()
 }
 
-Dashboard o-- Filter
-Dashboard o-- Parameter
+class Dashboard #cadetblue {
+activeDashboardObjectId
+activeDashboardName
+Object[] objects
+Worksheet[] worksheets
+DashboardObject getDashboardObjectById()
+setDashboardObjectVisibility(DashboardObject)
+replayAnimation()
+moveAndResizeDashboardObjects()
+-- deprecated --
+-setZoneVisibility()
+}
 
+class DataSource #cadetblue{
+name, id, 
+Fields[] fields
+String extractUpdateTime
+isExtract
+isPublished
+String publishedUrl,
+refresh()
+(->ConnectionSummary[]) getConnectionSummaries()
+(->DataTable) getUnderlyingData()
+(->LogicalTable[]) getLogicalTables()
+(->DataTable) getLogicalTableData(id, options)
+(->DataTableReader) getLogicalTableDataReader(id, options)
+--deprecated--
+-(->TableSummary[]) getActiveTables()
+}
+note right of DataSource 
+if TableSummary is deprecated, where can we get the initial SQL?
+end note
 
-class DashboardObject
-
-class Workbook
-
-class Worksheet extends Sheet {
+class Worksheet #cadetblue  {
 Dashboard parentDashboard
 DataSource[] getDatasourcesAsync()
 MarksCollection  getHighlightedMarks()
@@ -82,50 +148,60 @@ Annotation[] getAnnotations()
 removeAnnotation(Annotation)
 hoverTuple/selectTuple(Tuple)
 Column[] getSummaryColumnsInfo()
-DataTableReader getSummaryDataReader()
-DataTable getPages()
-LogicalTable[] getUnderlyingTables()
-DataTable getUnderlyingTableData()
-DataTableReader getUnderlyingTableDataReader()
+(->DataTableReader) getSummaryDataReader()
+(->DataTable) getPages()
+(->LogicalTable[]) getUnderlyingTables()
+(->DataTable) getUnderlyingTableData()
+(->DataTableReader) getUnderlyingTableDataReader()
+(->DataSource[]) getDataSources
+--deprecated--
+-(->DataTable) getSummaryData()
+-(->DataTable) getUnderlyingData()
+}
+
+class DashboardObject #orange {
+Dashboard dashboard
+String name
+isFloating
+String id
+DashboardObjectType type
+Point position
+Size size
+Worksheet? worksheet
+}
+
+class Filter #thistle{
+String fieldName
+String fieldId
+String worksheetName
+FilterType filterType
+(->Field) getField
+(->String[]) getAppliedWorksheets()
+(->String[]) setAppliedWorksheets(String[])
+}
+
+class Parameter #thistle{
+String name
+String id
+DataType datatype
+DataValue value
+ParameterDomainConstraint allowableValues
+(->DataValue) changeValues()
 }
 
 
-Worksheet o-- Column
-Worksheet o-- MarksCollection 
-Worksheet o-- Annotation
-Worksheet o-- Filter
-Worksheet o-- Parameter
-Worksheet o-- TableSummary
-Worksheet o-- LogicalTable
-Worksheet o-- DataTable
-Worksheet o-- DataTableReader
+note right of MarksCollection
+why is this the only aggregator class?
+end note
 
-MarksCollection --o MarkInfo
-
-class DataSource {
-name, id, 
-Fields[] fields
-String extractUpdateTime
-isExtract
-isPublished
-String publishedUrl,
-refresh()
-(->TableSummary[]) getActiveTables()
-(->ConnectionSummary[]) getConnectionSummaries()
-(->DataTable) getUnderlyingData()
-(->LogicalTable[]) getLogicalTables()
-(->DataTable) getLogicalTableData(id, options)
-(->DataTableReader) getLogicalTableDataReader(id, options)
+class MarkInfo #thistle{
+MarkType markType
+--not implemented--
+#String color
+#number tupleId
 }
 
-DataSource o-- TableSummary
-DataSource o-- ConnectionSummary
-DataSource o-- LogicalTable
-DataSource o-- DataTable
-DataSource o-- DataTableReader
-
-
-class ConnectionSummary {
+class ConnectionSummary #cadetblue {
 String name
 String id
 String serverURI
@@ -139,14 +215,13 @@ String connectionId
 String customSQL
 }
 
-TableSummary ... ConnectionSummary
 
 class LogicalTable {
 String id
 String caption 
 }
 
-class Column {
+class Column #cadetblue{
 String fieldName
 String fieldId
 DataType dataType
@@ -154,13 +229,11 @@ isReferenced
 index
 }
 
-Column ... Field
 
-class Field {
+class Field #cadetblue{
 String id == Column.fieldId
 DataSource dataSource
 isHidden
-ColumnType columnType
 String name
 String? description,
 DataType? dataType,
@@ -169,12 +242,12 @@ isGenerated
 FieldAggregationType aggregation,
 isCombinedField
 isPresentOnPublishedDatasource
+--not implemented--
+#ColumnType columnType
 }
 
 
-Field o-- DataSource
-
-class DataTable {
+class DataTable #lightgreen{
 String name
 DataValue[][] data
 MarkInfo[] marksInfo
@@ -184,9 +257,6 @@ isTotalRowCountLimited
 isSummaryData
 }
 
-DataTable o-- Column
-DataTable o-- MarkInfo
-
 class DataTableReader {
 totalRowCount
 pageCount
@@ -195,41 +265,10 @@ pageCount
 release()
 }
 
-class Parameter {
-String name
-String id
-DataType datatype
-DataValue value
-ParameterDomainConstraint allowableValues
-(->DataValue) changeValues()
-}
-
-class Filter {
-String fieldName
-String fieldId
-String worksheetName
-FilterType filterType
-(->Field) getField
-(->String[]) getAppliedWorksheets()
-(->String[]) setAppliedWorksheets(String[])
-}
-
-Filter ... Field
-Filter ... Worksheet
-
-class Annotation {
+class Annotation #thistle{
 String annotationText
 number annotationId
 number tupleId
 AnnotationType annotationType
 }
-
-class MarkInfo {
-MarkType markType
-String color
-number tupleId
-}
-
-
-DataTableReader o-- DataTable
 @enduml
